@@ -5,7 +5,7 @@
 ```cmd
 git clone https://github.com/billma007/pythontranslator.git
 cd pythontranslator
-pip install -r requirements
+pip install -r requirements.txt
 py translate-MSDOS1.0.0.py
 ```
 
