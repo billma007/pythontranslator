@@ -4,12 +4,22 @@
 
 ```cmd
 git clone https://github.com/billma007/pythontranslator.git
-cd pythontranslator
-pip install -r requirements.txt
+cd pythontranslator.txt
+pip install -r requirements
 py translate-MSDOS1.0.0.py
+py translate-GUI1.1.py
 ```
 
 **注意：pyttsx3一定要是2.71版本的，否则在输出中文时会报错!**
+
+## 框架/What's this?
+
+- [translate-MSDOS1.0.0.py](translate-MSDOS1.0.0.py)  ------MS-DOS1.0
+- [translate-GUI1.1.py](translate-MSDOS1.0.0.py)  ------GUI1.1
+- [transsettings.txt](transsettings.txt)  ------朗读设置。在GUI中弃用
+- [LICENSE](LICENSE) ------条款/LICENSE
+- [README.md](README.md) ------README
+- [requirements.txt](requirements.txt)  ------依赖/Requirements
 
 ## 原理/principle
 
@@ -178,6 +188,70 @@ result = r.json()
 translate_result = result['translateResult'][0][0]["tgt"]
 ```
 
+### 5.GUI界面构建
+
+创建一个`class()`类来进行tkinter的构建。
+
+```py
+class Translate():
+    def __init__(self):
+        self.window = tk.Tk()  #创建window窗口
+        self.window.title("马哥翻译器GUI1.1")  # 定义窗口名称
+        self.window.resizable(0,0)  # 禁止调整窗口大小
+        self.input = tk.Entry(self.window, width=80)  # 创建一个输入框,并设置尺寸
+        self.info = tk.Text(self.window, height=18)   # 创建一个文本展示框，并设置尺寸
+        # 添加一个按钮，用于触发翻译功能
+        self.t_button = tk.Button(self.window, text='翻译', relief=tk.RAISED, width=8, height=1, command=self.fanyi)
+        # 添加一个按钮，用于触发清空输入框功能
+        self.c_button1 = tk.Button(self.window, text='清空输入', relief=tk.RAISED, width=8, height=1, command=self.cle_e)
+        # 添加一个按钮，用于触发清空输出框功能
+        self.c_button2 = tk.Button(self.window, text='清空输出', relief=tk.RAISED,width=8, height=1, command=self.cle)
+        # 添加一个按钮，用于打开GitHub仓库
+        self.c_button3 = tk.Button(self.window, text='本代码开源，点击前往GitHub了解更多',relief=tk.RAISED,width=24, height=1, command=self.GoToGitHub)
+        # 添加两个按钮，用于设置语音开关
+        self.c_button41 = tk.Button(self.window, text='打开语音朗读',relief=tk.RAISED,width=16, height=1, command=self.openpyttsx3)
+        self.c_button42 = tk.Button(self.window, text='关闭语音朗读',relief=tk.RAISED,width=16, height=1, command=self.closepyttsx3)
+        # 添加一个按钮用于将内容复制到剪贴板
+        self.c_button5 = tk.Button(self.window, text='将结果复制到剪贴板',relief=tk.RAISED,width=16, height=1, command=self.copyit)
+        # 添加一张图标
+        # self.image_file = tk.PhotoImage(file='py128.png')
+        # self.label_image = tk.Label(self.window, image=self.image_file)
+
+    def gui_arrang(self):
+        """完成页面元素布局，设置各部件的位置"""
+        self.input.grid(row=0,sticky="W",ipadx=0)
+        self.info.grid(row=1)
+        self.t_button.grid(row=0,column=1,ipadx=0)
+        self.c_button1.grid(row=0, column=2, ipadx=0)
+        self.c_button2.grid(row=0,column=3,ipadx=0)
+        self.c_button3.grid(row=1,column=1,ipadx=0)
+        self.c_button41.grid(row=2,column=1,ipadx=10)
+        self.c_button42.grid(row=2,column=2,ipadx=10)
+        self.c_button5.grid(row=3,column=1,ipadx=10)
+        # self.label_image.grid(row=1, column=1,columnspan=3)
+
+    def fanyi(self):
+        """定义一个函数，完成翻译功能"""
+        original_str = self.input.get()  # 定义一个变量，用来接收输入框输入的值
+        data = {
+            'doctype': 'json',
+            'type': 'AUTO',
+            'i': original_str  # 将输入框输入的值，赋给接口参数
+        }
+        url = "http://fanyi.youdao.com/translate"
+        try:
+            r = requests.get(url, params=data)
+            if r.status_code == 200:
+                result = r.json()
+                translate_result = result['translateResult'][0][0]["tgt"]
+                self.info.delete(1.0, "end")  # 输出翻译内容前，先清空输出框的内容
+                self.info.insert('end',translate_result)  # 将翻译结果添加到输出框中
+        except RequestException:
+            self.info.delete(1.0, "end")
+            self.info.insert('end', "发生错误")
+
+```
+
 ## 更新日志/Update Log
 
 - 2022/3/9 MS-DOS1.0.0版本发布，同时GUI1.0版本开始筹划并初步完成。
@@ -188,7 +262,15 @@ translate_result = result['translateResult'][0][0]["tgt"]
 - 2022/1/31 农历春节，写完了MS-DOS1.0版本的前身Basic1.0
 - 2022/1/21 开始放寒假，学习requests爬虫知识并开始筹划
 
-## 版本关系
+## 目前仍然存在的问题/Bug
+
+- MS-DOS版本:
+  - 初次启动时有概率会无法创建文件导致异常抛出(正在~~尝试~~使用try...except解决问题)
+  - 在需要管理员权限的位置或者在Other Users(Administrator)的时候会出错。
+- GUI版本:
+  - 由于全局变量`global`的设置问题，部分环境下剪贴板可能无法正常运行。
+
+## 版本关系/Connections
 
 特别声明：MS-DOS和GUI版本是**平等**的！没有高下之分！~~就像Microsoft Visual Studio和Microsoft Visual Studio Code的关系一样~~
 
